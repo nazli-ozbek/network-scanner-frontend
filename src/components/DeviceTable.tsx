@@ -59,7 +59,12 @@ export default function DeviceTable({ ipRange }: DeviceTableProps) {
                   ></span>
                   {device.is_online ? 'Online' : 'Offline'}
                 </td>
-                <td className="border px-4 py-2">{new Date(device.last_seen).toLocaleString()}</td>
+                <td className="border px-4 py-2">
+          {device.last_seen && new Date(device.last_seen).getFullYear() > 2000
+            ? new Date(device.last_seen).toLocaleString()
+            : 'Not seen yet'}
+        </td>
+
               </tr>
             ))}
           </tbody>
