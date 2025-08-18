@@ -32,7 +32,7 @@ export default function DeviceTable({ ipRange }: DeviceTableProps) {
     <div className="p-4 mt-8 max-w-4xl mx-auto bg-white rounded shadow-md">
       <h2 className="text-xl font-semibold mb-4">Discovered Devices</h2>
       {error && <p className="text-red-600">{error}</p>}
-      {devices.length === 0 ? (
+      {!devices || devices.length === 0 ? (
         <p className="text-gray-600">No devices found yet.</p>
       ) : (
         <table className="min-w-full border text-sm">

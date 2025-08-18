@@ -17,7 +17,7 @@ export default function ScanForm({ onScan }: ScanFormProps) {
     setError(null);
 
     try {
-      await clearDevices();
+      //await clearDevices();
       const result = await startScan(ipRange);
       setStatus(result);
       onScan(ipRange);
