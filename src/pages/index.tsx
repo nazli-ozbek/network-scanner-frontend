@@ -2,6 +2,7 @@ import { useState } from 'react';
 import Head from 'next/head';
 import ScanForm from '@/components/ScanForm';
 import DeviceTable from '@/components/DeviceTable';
+import ScanHistoryTable from '@/components/ScanHistory';
 import { clearDevices } from '@/lib/api';
 
 export default function Home() {
@@ -24,6 +25,8 @@ export default function Home() {
         <h1 className="text-3xl font-bold text-center mb-6">Network Scanner</h1>
 
         <ScanForm onScan={(range) => setIpRange(range)} />
+
+        <ScanHistoryTable onRepeat={(range) => setIpRange(range)} />
 
         {ipRange && (
           <div className="relative max-w-4xl mx-auto">

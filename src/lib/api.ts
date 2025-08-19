@@ -45,3 +45,33 @@ export async function clearDevices(): Promise<void> {
     throw new Error('Failed to clear devices');
   }
 }
+
+export type ScanHistory = {
+  id: number;
+  ip_range: string;
+  started_at: string;
+  device_count: number;
+};
+
+export async function fetchScanHistory(): Promise<ScanHistory[]> {
+  const res = await fetch(`${BASE_URL}/scan-history`);
+  if (!res.ok) throw new Error('Failed to fetch scan history');
+  return res.json();
+}
+
+export async function repeatScan(id: number): Promise<string> {
+  const res = await fetch(`${BASE_URL}/scan/repeat?id=${id}`, { method: 'POST' });
+  if (!res.ok) throw new Error('Failed to repeat scan');
+  const data = await res.json();
+  return data.status;
+}
+
+export async function deleteScanHistory(id: number): Promise<void> {
+  const res = await fetch(`${BASE_URL}/scan-history/${id}`, { method: 'DELETE' });
+  if (!res.ok) throw new Error('Failed to delete history');
+}
+
+export async function clearScanHistory(): Promise<void> {
+  const res = await fetch(`${BASE_URL}/scan-history`, { method: 'DELETE' });
+  if (!res.ok) throw new Error('Failed to clear history');
+}
