@@ -11,13 +11,13 @@ export default function ScanForm({ onScan }: ScanFormProps) {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const handleScan = async () => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     setLoading(true);
     setStatus(null);
     setError(null);
 
     try {
-      //await clearDevices();
       const result = await startScan(ipRange);
       setStatus(result);
       onScan(ipRange);
@@ -29,7 +29,10 @@ export default function ScanForm({ onScan }: ScanFormProps) {
   };
 
   return (
-    <div className="p-4 border rounded-md shadow-md bg-white max-w-md mx-auto">
+    <form
+      onSubmit={handleSubmit}
+      className="p-4 border rounded-md shadow-md bg-white max-w-md mx-auto"
+    >
       <h2 className="text-lg font-semibold mb-2">Start Network Scan</h2>
       <input
         type="text"
@@ -39,7 +42,7 @@ export default function ScanForm({ onScan }: ScanFormProps) {
         className="w-full p-2 border rounded mb-2"
       />
       <button
-        onClick={handleScan}
+        type="submit"
         className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
         disabled={!ipRange || loading}
       >
@@ -47,6 +50,6 @@ export default function ScanForm({ onScan }: ScanFormProps) {
       </button>
       {status && <p className="mt-2 text-green-600">{status}</p>}
       {error && <p className="mt-2 text-red-600">{error}</p>}
-    </div>
+    </form>
   );
 }
