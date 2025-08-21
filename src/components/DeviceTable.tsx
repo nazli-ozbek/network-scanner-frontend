@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { fetchDevices, Device } from '@/lib/api';
+import { fetchDevices, Device, addTagToDevice, removeTagFromDevice} from '@/lib/api';
+
 
 type DeviceTableProps = { ipRange: string };
 
@@ -20,9 +21,33 @@ function isInCidr(ip: string, cidr: string): boolean {
   return (ipNum & mask) === (baseNum & mask);
 }
 
+
 export default function DeviceTable({ ipRange }: DeviceTableProps) {
   const [devices, setDevices] = useState<Device[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [tagInputs, setTagInputs] = useState<Record<string, string>>({});
+
+  const handleAddTag = async (deviceId: string) => {
+  const tag = tagInputs[deviceId]?.trim();
+  if (!tag) return;
+  try {
+    await addTagToDevice(deviceId, tag);
+    setTagInputs((prev) => ({ ...prev, [deviceId]: '' }));
+    loadDevices();
+  } catch {
+    alert('Failed to add tag');
+  }
+};
+
+  const handleRemoveTag = async (deviceId: string, tag: string) => {
+    try {
+      await removeTagFromDevice(deviceId, tag);
+      loadDevices();
+    } catch {
+      alert('Failed to remove tag');
+    }
+  };
+
 
   const loadDevices = async () => {
     try {
@@ -94,17 +119,43 @@ export default function DeviceTable({ ipRange }: DeviceTableProps) {
                   <td className="border px-4 py-2">{device.manufacturer || ''}</td>
                   <td className="border px-4 py-2">
                     {device.tags && device.tags.length > 0 ? (
-                      <div className="flex flex-wrap gap-1">
+                      <div className="flex flex-wrap gap-1 mb-2">
                         {device.tags.map((t) => (
-                          <span key={t} className="px-2 py-0.5 rounded-full bg-gray-100 border">
-                            {t}
-                          </span>
-                        ))}
+                        <span key={t} className="px-2 py-0.5 rounded-full bg-gray-100 border flex items-center gap-1">
+                          {t}
+                          <button
+                            onClick={() => handleRemoveTag(device.id, t)}
+                            className="text-red-500 hover:text-red-700 text-xs"
+                            title="Remove tag"
+                          >
+                            ✕
+                          </button>
+                        </span>
+                      ))}
                       </div>
                     ) : (
-                      ''
+                      <p className="text-gray-400 italic mb-2">No tags</p>
                     )}
+
+                    <div className="flex gap-1">
+                      <input
+                        type="text"
+                        placeholder="New tag"
+                        value={tagInputs[device.id] || ''}
+                        onChange={(e) =>
+                          setTagInputs({ ...tagInputs, [device.id]: e.target.value })
+                        }
+                        className="border rounded px-2 py-0.5 text-xs"
+                      />
+                      <button
+                        onClick={() => handleAddTag(device.id)}
+                        className="bg-blue-600 text-white text-xs px-2 py-0.5 rounded hover:bg-blue-700"
+                      >
+                        Add
+                      </button>
+                    </div>
                   </td>
+
                 </tr>
               ))}
             </tbody>

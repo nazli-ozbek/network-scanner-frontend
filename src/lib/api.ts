@@ -61,3 +61,23 @@ export async function deleteIPRange(id: string): Promise<void> {
   const res = await fetch(`${BASE_URL}/ranges/${id}`, { method: 'DELETE' });
   if (!res.ok) throw new Error('Failed to delete IP range');
 }
+
+export async function addTagToDevice(id: string, tag: string): Promise<void> {
+  const res = await fetch(`${BASE_URL}/devices/${id}/tags`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ tag }),
+  });
+  if (!res.ok) throw new Error('Failed to add tag');
+}
+
+export async function removeTagFromDevice(id: string, tag: string): Promise<void> {
+  const res = await fetch(`${BASE_URL}/devices/${id}/tags`, {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ tag }),
+  });
+  if (!res.ok) throw new Error('Failed to remove tag');
+}
+
+
