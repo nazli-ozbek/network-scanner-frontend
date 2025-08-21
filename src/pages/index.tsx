@@ -2,8 +2,8 @@ import { useState } from 'react';
 import Head from 'next/head';
 import ScanForm from '@/components/ScanForm';
 import DeviceTable from '@/components/DeviceTable';
-import ScanHistoryTable from '@/components/ScanHistory';
-import { clearDevices } from '@/lib/api';
+import { clearDevices , startScan} from '@/lib/api';
+import IPRangeTable from '@/components/IPRangeTable';
 
 export default function Home() {
   const [ipRange, setIpRange] = useState<string | null>(null);
@@ -26,7 +26,11 @@ export default function Home() {
 
         <ScanForm onScan={(range) => setIpRange(range)} />
 
-        <ScanHistoryTable onRepeat={(range) => setIpRange(range)} />
+        <IPRangeTable onSelect={async (range) => {
+          await startScan(range); 
+          setIpRange(range);
+        }} />
+
 
         {ipRange && (
           <div className="relative max-w-4xl mx-auto">
