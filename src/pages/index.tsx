@@ -2,12 +2,39 @@ import { useState } from 'react';
 import Head from 'next/head';
 import ScanForm from '@/components/ScanForm';
 import DeviceTable from '@/components/DeviceTable';
-import { clearDevices, startScan } from '@/lib/api';
+import { clearDevices, startScan, Device } from '@/lib/api';
 import IPRangeTable from '@/components/IPRangeTable';
+import SearchBar from '@/components/SearchBar';
+import { searchDevices } from '@/lib/api';
+
 
 export default function Home() {
   const [ipRange, setIpRange] = useState<string | null>(null);
   const [clearTrigger, setClearTrigger] = useState(0);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState <Device[] | null>(null);
+
+
+const handleSearch = async (query: string) => {
+  setSearchQuery(query);
+  if (query.length === 0) {
+    setSearchResults(null);
+    return;
+  }
+  try {
+    const results = await searchDevices(query);
+    setSearchResults(results);
+  } catch (err) {
+    console.error('Search failed');
+  }
+};
+
+const handleClear = async () => {
+  await clearDevices();
+  setIpRange(null);
+  setClearTrigger((prev) => prev + 1);
+  setSearchResults(null);
+};
 
   return (
     <>
@@ -20,6 +47,8 @@ export default function Home() {
 
         <ScanForm onScan={(range) => setIpRange(range)} />
 
+        <SearchBar onSearch={handleSearch} />
+
         <IPRangeTable
           onSelect={async (range) => {
             await startScan(range);
@@ -28,24 +57,27 @@ export default function Home() {
         />
 
         {ipRange && (
-          <div className="relative max-w-4xl mx-auto">
-            <div className="absolute top-0 right-0 mt-2 mr-2 flex items-center gap-2 z-10">
-              <button
-                onClick={async () => {
-                  await clearDevices();
-                  setIpRange(null);
-                  setClearTrigger((prev) => prev + 1);
-                }}
-                className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700"
-              >
-                Clear
-              </button>
-            </div>
-
-            <DeviceTable ipRange={ipRange} key={clearTrigger} />
+        <div className="relative max-w-4xl mx-auto">
+          <div className="absolute top-0 right-0 mt-2 mr-2 flex items-center gap-2 z-10">
+            <button
+              onClick={handleClear}
+              className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700"
+            >
+              Clear
+            </button>
           </div>
-        )}
+
+          <DeviceTable
+          ipRange={ipRange}
+          key={clearTrigger}
+          overrideDevices={searchResults}
+          searchQuery={searchQuery}
+        />
+        </div>
+      )}
       </main>
     </>
   );
+
+
 }

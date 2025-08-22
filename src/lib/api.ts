@@ -31,6 +31,22 @@ export async function fetchDevices(): Promise<Device[]> {
   return data;
 }
 
+export async function searchDevices(query: string): Promise<Device[]> {
+  const response = await fetch(`${BASE_URL}/devices/search?query=${encodeURIComponent(query)}`);
+  if (!response.ok) {
+    throw new Error('Search failed');
+  }
+
+  try {
+    const data = await response.json();
+    return Array.isArray(data) ? data : [];
+  } catch {
+    return [];
+  }
+}
+
+
+
 export async function clearDevices(): Promise<void> {
   const response = await fetch(`${BASE_URL}/clear`, { method: 'DELETE' });
   if (!response.ok) throw new Error('Failed to clear devices');
