@@ -1,8 +1,16 @@
 import { useEffect, useMemo, useState } from 'react';
 import { fetchDevices, Device, addTagToDevice, removeTagFromDevice} from '@/lib/api';
+import { FiRefreshCw } from 'react-icons/fi';
 
 
-type DeviceTableProps = { ipRange: string };
+
+type DeviceTableProps = {
+  ipRange: string;
+  onUpdatingChange?: (updating: boolean) => void;
+};
+
+
+
 
 function ipToInt(ip: string): number {
   const parts = ip.split('.').map((p) => parseInt(p, 10));
@@ -22,11 +30,14 @@ function isInCidr(ip: string, cidr: string): boolean {
 }
 
 
-export default function DeviceTable({ ipRange }: DeviceTableProps) {
+export default function DeviceTable({ ipRange,onUpdatingChange }: DeviceTableProps) {
+
   const [devices, setDevices] = useState<Device[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [tagInputs, setTagInputs] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [updating, setUpdating] = useState(false); 
 
 
   const handleAddTag = async (deviceId: string) => {
@@ -51,8 +62,14 @@ export default function DeviceTable({ ipRange }: DeviceTableProps) {
   };
 
 
-  const loadDevices = async () => {
-  setLoading(true);
+  const loadDevices = async (isInitial = false) => {
+  if (isInitial) {
+    setInitialLoading(true);
+  } else {
+    setUpdating(true);
+    if (onUpdatingChange) onUpdatingChange(true);
+  }
+
   try {
     const result = await fetchDevices();
     setDevices(result);
@@ -60,16 +77,22 @@ export default function DeviceTable({ ipRange }: DeviceTableProps) {
   } catch {
     setError('Failed to fetch devices');
   } finally {
-    setLoading(false);
+    if (isInitial) {
+      setInitialLoading(false);
+    } else {
+      setUpdating(false);
+      if (onUpdatingChange) onUpdatingChange(false);
+    }
   }
 };
 
 
   useEffect(() => {
-    loadDevices();
-    const interval = setInterval(loadDevices, 5000);
-    return () => clearInterval(interval);
-  }, [ipRange]);
+  loadDevices(true);
+  const interval = setInterval(() => loadDevices(false), 5000);
+  return () => clearInterval(interval);
+}, [ipRange]);
+
 
   const filtered = useMemo(
   () => (devices || []).filter((d) => isInCidr(d.ip_address, ipRange)),
@@ -81,12 +104,13 @@ export default function DeviceTable({ ipRange }: DeviceTableProps) {
     <div className="p-4 mt-8 max-w-4xl mx-auto bg-white rounded shadow-md">
       <h2 className="text-xl font-semibold mb-4">Discovered Devices</h2>
       {error && <p className="text-red-600">{error}</p>}
-      {loading ? (
-      <p className="text-gray-600 italic">Loading devices...</p>
-    ) : filtered.length === 0 ? (
-      <p className="text-gray-600">No devices in this subnet yet.</p>
-    ) : (
-        <div className="max-h-96 overflow-auto rounded border">
+      {initialLoading ? (
+        <p className="text-gray-600 italic">Loading devices...</p>
+      ) : filtered.length === 0 ? (
+        <p className="text-gray-600">No devices in this subnet yet.</p>
+      ) : (
+        <>
+          <div className="max-h-96 overflow-auto rounded border">
           <table className="min-w-full text-sm">
             <thead className="bg-gray-100 sticky top-0">
               <tr>
@@ -171,6 +195,7 @@ export default function DeviceTable({ ipRange }: DeviceTableProps) {
             </tbody>
           </table>
         </div>
+        </>
       )}
     </div>
   );

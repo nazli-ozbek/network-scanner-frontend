@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { startScan, clearDevices } from '@/lib/api';
+import { startScan } from '@/lib/api';
 
 type ScanFormProps = {
   onScan: (ipRange: string) => void;
@@ -9,22 +9,17 @@ export default function ScanForm({ onScan }: ScanFormProps) {
   const [ipRange, setIpRange] = useState('');
   const [status, setStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
     setStatus(null);
     setError(null);
 
     try {
-      const result = await startScan(ipRange);
-      setStatus(result);
+      await startScan(ipRange);
       onScan(ipRange);
-    } catch (err) {
+    } catch {
       setError('Failed to start scan');
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -44,9 +39,9 @@ export default function ScanForm({ onScan }: ScanFormProps) {
       <button
         type="submit"
         className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
-        disabled={!ipRange || loading}
+        disabled={!ipRange}
       >
-        {loading ? 'Scanning...' : 'Scan'}
+        Scan
       </button>
       {status && <p className="mt-2 text-green-600">{status}</p>}
       {error && <p className="mt-2 text-red-600">{error}</p>}
