@@ -26,6 +26,8 @@ export default function DeviceTable({ ipRange }: DeviceTableProps) {
   const [devices, setDevices] = useState<Device[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [tagInputs, setTagInputs] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(true);
+
 
   const handleAddTag = async (deviceId: string) => {
   const tag = tagInputs[deviceId]?.trim();
@@ -50,14 +52,18 @@ export default function DeviceTable({ ipRange }: DeviceTableProps) {
 
 
   const loadDevices = async () => {
-    try {
-      const result = await fetchDevices();
-      setDevices(result);
-      setError(null);
-    } catch {
-      setError('Failed to fetch devices');
-    }
-  };
+  setLoading(true);
+  try {
+    const result = await fetchDevices();
+    setDevices(result);
+    setError(null);
+  } catch {
+    setError('Failed to fetch devices');
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   useEffect(() => {
     loadDevices();
@@ -75,9 +81,11 @@ export default function DeviceTable({ ipRange }: DeviceTableProps) {
     <div className="p-4 mt-8 max-w-4xl mx-auto bg-white rounded shadow-md">
       <h2 className="text-xl font-semibold mb-4">Discovered Devices</h2>
       {error && <p className="text-red-600">{error}</p>}
-      {filtered.length === 0 ? (
-        <p className="text-gray-600">No devices in this subnet yet.</p>
-      ) : (
+      {loading ? (
+      <p className="text-gray-600 italic">Loading devices...</p>
+    ) : filtered.length === 0 ? (
+      <p className="text-gray-600">No devices in this subnet yet.</p>
+    ) : (
         <div className="max-h-96 overflow-auto rounded border">
           <table className="min-w-full text-sm">
             <thead className="bg-gray-100 sticky top-0">

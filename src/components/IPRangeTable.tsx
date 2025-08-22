@@ -27,18 +27,23 @@ export default function IPRangeTable({ onSelect }: Props) {
   }, []);
 
   const handleAdd = async () => {
-    if (!form.id || !form.name || !form.range) {
-      setError('All fields are required');
-      return;
-    }
-    try {
-      await addIPRange(form as IPRange);
-      setForm({ name: '', range: '', id: '' });
-      load();
-    } catch {
-      setError('Failed to add IP range');
-    }
-  };
+  if (!form.name || !form.range) {
+    setError('All fields are required');
+    return;
+  }
+  try {
+    await addIPRange({
+      name: form.name,
+      range: form.range,
+      id: ''
+    });
+    setForm({ name: '', range: '' });
+    load();
+  } catch {
+    setError('Failed to add IP range');
+  }
+};
+
 
   const handleDelete = async (id: string) => {
     if (!confirm('Delete this range?')) return;
@@ -55,13 +60,6 @@ export default function IPRangeTable({ onSelect }: Props) {
       <h2 className="text-xl font-semibold mb-4">Saved IP Ranges</h2>
 
       <div className="mb-4 flex flex-col sm:flex-row gap-2">
-        <input
-          type="text"
-          placeholder="ID"
-          value={form.id || ''}
-          onChange={(e) => setForm({ ...form, id: e.target.value })}
-          className="border rounded px-2 py-1 flex-1"
-        />
         <input
           type="text"
           placeholder="Name"
