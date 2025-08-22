@@ -90,6 +90,7 @@ export default function DeviceTable({ ipRange }: DeviceTableProps) {
           <table className="min-w-full text-sm">
             <thead className="bg-gray-100 sticky top-0">
               <tr>
+                <th className="border px-4 py-2 text-left">ID</th>
                 <th className="border px-4 py-2 text-left">IP Address</th>
                 <th className="border px-4 py-2 text-left">MAC Address</th>
                 <th className="border px-4 py-2 text-left">Hostname</th>
@@ -103,6 +104,7 @@ export default function DeviceTable({ ipRange }: DeviceTableProps) {
             <tbody>
               {filtered.map((device) => (
                 <tr key={device.id || device.ip_address} className="hover:bg-gray-50">
+                  <td className="border px-4 py-2">{device.id}</td>
                   <td className="border px-4 py-2">{device.ip_address}</td>
                   <td className="border px-4 py-2">{device.mac_address}</td>
                   <td className="border px-4 py-2">{device.hostname}</td>
