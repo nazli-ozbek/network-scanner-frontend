@@ -32,6 +32,18 @@ export default function DeviceTable({ ipRange, onUpdatingChange, overrideDevices
   const [tagInputs, setTagInputs] = useState<Record<string, string>>({});
   const [initialLoading, setInitialLoading] = useState(true);
   const [recentlyUpdated, setRecentlyUpdated] = useState(false);
+  const [sortBy, setSortBy] = useState<'ip' | 'hostname' | 'last_seen'>('ip');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'online' | 'offline'>('all');
+
+  const toggleSort = (column: typeof sortBy) => {
+  if (sortBy === column) {
+    setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+  } else {
+    setSortBy(column);
+    setSortOrder('asc');
+  }
+};
 
   const handleAddTag = async (deviceId: string) => {
     const tag = tagInputs[deviceId]?.trim();
@@ -53,6 +65,16 @@ export default function DeviceTable({ ipRange, onUpdatingChange, overrideDevices
       alert('Failed to remove tag');
     }
   };
+
+  const renderSortArrow = (column: typeof sortBy) => {
+  const isActive = sortBy === column;
+  const arrow = sortOrder === 'asc' ? '↑' : '↓';
+  return (
+    <span className={`ml-1 ${isActive ? 'font-bold text-black' : 'text-gray-400'}`}>
+      {column === sortBy ? arrow : '↕'}
+    </span>
+  );
+};
 
   const loadDevices = async (isInitial = false) => {
     if (isInitial) {
@@ -84,14 +106,50 @@ export default function DeviceTable({ ipRange, onUpdatingChange, overrideDevices
     return () => clearInterval(interval);
   }, [ipRange]);
 
-  const filtered = useMemo(() => {
-    const source = overrideDevices ?? devices;
-    return source.filter((d) => isInCidr(d.ip_address, ipRange));
-  }, [devices, ipRange, overrideDevices]);
+ const filtered = useMemo(() => {
+  const source = overrideDevices ?? devices;
+
+  let result = source.filter((d) => isInCidr(d.ip_address, ipRange));
+
+  if (statusFilter !== 'all') {
+    result = result.filter((d) => d.status === statusFilter);
+  }
+
+  result = result.sort((a, b) => {
+      let aValue = sortBy === 'ip' ? ipToInt(a.ip_address)
+    : sortBy === 'hostname' ? a.hostname
+    : a.last_seen ? new Date(a.last_seen).getTime() : 0;
+
+    let bValue = sortBy === 'ip' ? ipToInt(b.ip_address)
+      : sortBy === 'hostname' ? b.hostname
+      : b.last_seen ? new Date(b.last_seen).getTime() : 0;
+
+
+    if (aValue < bValue) return sortOrder === 'asc' ? -1 : 1;
+    if (aValue > bValue) return sortOrder === 'asc' ? 1 : -1;
+    return 0;
+  });
+
+  return result;
+}, [devices, ipRange, overrideDevices, statusFilter, sortBy, sortOrder]);
+
+
 
   return (
     <div className="p-4 mt-8 max-w-4xl mx-auto bg-white rounded shadow-md">
       <h2 className="text-xl font-semibold mb-4">Discovered Devices</h2>
+      <div className="flex items-center gap-2 mb-4">
+              <label className="text-sm font-medium">Filter by status:</label>
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value as any)}
+                className="border rounded px-2 py-1 text-sm"
+              >
+                <option value="all">All</option>
+                <option value="online">Online</option>
+                <option value="offline">Offline</option>
+              </select>
+            </div>
       {error && <p className="text-red-600">{error}</p>}
       {initialLoading ? (
         <p className="text-gray-600 italic">Loading devices...</p>
@@ -113,12 +171,18 @@ export default function DeviceTable({ ipRange, onUpdatingChange, overrideDevices
             <thead className="bg-gray-100 sticky top-0">
               <tr>
                 <th className="border px-4 py-2 text-left">ID</th>
-                <th className="border px-4 py-2 text-left">IP Address</th>
+                <th onClick={() => toggleSort('ip')} className="cursor-pointer px-4 py-2 text-left">
+                IP Address {renderSortArrow('ip')}
+              </th>
                 <th className="border px-4 py-2 text-left">MAC Address</th>
-                <th className="border px-4 py-2 text-left">Hostname</th>
+                <th onClick={() => toggleSort('hostname')} className="cursor-pointer px-4 py-2 text-left">
+                Hostname {renderSortArrow('hostname')}
+              </th>
                 <th className="border px-4 py-2 text-left">Status</th>
                 <th className="border px-4 py-2 text-left">First Seen</th>
-                <th className="border px-4 py-2 text-left">Last Seen</th>
+                <th onClick={() => toggleSort('last_seen')} className="cursor-pointer px-4 py-2 text-left">
+                Last Seen {renderSortArrow('last_seen')}
+              </th>
                 <th className="border px-4 py-2 text-left">Manufacturer</th>
                 <th className="border px-4 py-2 text-left">Tags</th>
               </tr>
