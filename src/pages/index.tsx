@@ -47,8 +47,6 @@ const handleClear = async () => {
 
         <ScanForm onScan={(range) => setIpRange(range)} />
 
-        <SearchBar onSearch={handleSearch} />
-
         <IPRangeTable
           onSelect={async (range) => {
             await startScan(range);
@@ -57,24 +55,29 @@ const handleClear = async () => {
         />
 
         {ipRange && (
-        <div className="relative max-w-4xl mx-auto">
-          <div className="absolute top-0 right-0 mt-2 mr-2 flex items-center gap-2 z-10">
+      <div className="max-w-4xl mx-auto">
+        <SearchBar onSearch={handleSearch} />
+
+        <div className="relative">
+          <div className="absolute top-2 right-2 z-10">
             <button
               onClick={handleClear}
-              className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700"
+              className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 text-sm shadow"
             >
               Clear
             </button>
           </div>
 
           <DeviceTable
-          ipRange={ipRange}
-          key={clearTrigger}
-          overrideDevices={searchResults}
-          searchQuery={searchQuery}
-        />
+            ipRange={ipRange}
+            key={clearTrigger}
+            overrideDevices={searchResults}
+            searchQuery={searchQuery}
+          />
         </div>
-      )}
+      </div>
+    )}
+
       </main>
     </>
   );

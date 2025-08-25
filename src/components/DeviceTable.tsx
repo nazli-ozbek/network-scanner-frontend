@@ -167,7 +167,7 @@ export default function DeviceTable({ ipRange, onUpdatingChange, overrideDevices
             recentlyUpdated ? 'bg-green-100' : 'bg-white'
           }`}
         >
-          <table className="min-w-full text-sm">
+          <table className="min-w-full text-sm border-collapse border border-gray-300">
             <thead className="bg-gray-100 sticky top-0">
               <tr>
                 <th className="border px-4 py-2 text-left">ID</th>
